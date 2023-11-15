@@ -1,2 +1,34 @@
 <h1>{{title}}</h1>
 <p>Welcome to {{title}}</p>
+<div class="card mb-7" style="padding: 20px;">
+    <form style="justify-content: center" class="row g-3" method="post">
+        <div class="col-auto">
+            <input class="form-control" type="date" id="fromDate" name="fromDate" required>
+        </div>
+        <div class="col-auto">
+            <input class="form-control" type="date" id="toDate" name="toDate" required>
+        </div>
+        <div class="col-auto">
+            <a type="button" class="btn btn-warning text-light" onclick="check()">
+                <span>Scan</span>
+            </a>
+        </div>
+    </form>
+</div>
+<script>
+    function check() {
+        const fromDate = document.getElementById('fromDate').value;
+        const toDate = document.getElementById('toDate').value;
+        const data = {
+            fromDate : fromDate,
+            toDate: toDate
+        }
+        axios.post('/check', data)
+                .then(response => {
+                    alert(response.data.msg)
+                })
+                .catch(error => {
+                    alert('Lỗi:'+error);
+                });
+    }
+</script>

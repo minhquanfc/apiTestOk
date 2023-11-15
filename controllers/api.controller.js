@@ -58,39 +58,61 @@ const getCountSub = async (id) => {
         throw new Error("Error in getCountSub: " + error);
     }
 }
-
-exports.callApi = (req,res,next)=>{
+exports.formCheck = (req, res, next) => {
+    res.render('index', {title: 'Express'});
+}
+exports.callApi = (req, res, next) => {
     const token = "Bearer 590|Ynmw6oAweZBdpyIPOBhL8kgO9XwTPX3niIKEhSHh"
-    axios.get('http://subcmc.api-simplesolution.one/api/v2/order/history/list?fromDay=10-09-2023&toDay=31-10-2023&user_id=-1&cancel=0&service_id=0',{
+    let fromDate = req.body.fromDate;
+    let toDate = req.body.toDate;
+    axios.get(`http://subcmc.api-simplesolution.one/api/v2/order/history/list?fromDay=${formatDate(fromDate)}&toDay=${formatDate(toDate)}&user_id=-1&cancel=0&service_id=0`, {
         headers: {
             'Authorization': `Bearer ${token}`
         }
     })
         .then(async response => {
-            // console.log(response.data.data);
             const data123 = response.data.data;
-            for (let i = 0; i < data123.length; i++) {
-                // console.log(data123[i].order_id)
-                await callApicheck(data123[i].order_id, token);
+            if (data123.length === 0) {
+                return res.json({msg: 'Không có order'});
+            } else {
+                for (let i = 0; i < data123.length; i++) {
+                    // console.log(data123[i].order_id)
+                    await callApicheck(data123[i].order_id, token);
+                    if (i === data123.length - 1) {
+                        res.json({ msg: 'All API calls completed.' });
+                    }
+                }
+                // res.json({msg: `Đang check ${data123.length} orders...`});
             }
-            res.render('index', {title: 'Express'});
         })
         .catch(error => {
-            console.error(error);
+            return res.json({msg: 'Lỗi không lấy được data'});
         });
 }
 // http://subcmc.api-simplesolution.one/api/v2/order/history/list?fromDay=07-10-2023&toDay=14-10-2023&user_id=-1&cancel=1&service_id=0
 // callApicheck("267644","Bearer 590|Ynmw6oAweZBdpyIPOBhL8kgO9XwTPX3niIKEhSHh")
-async function callApicheck(id,token) {
-    axios.get('http://subcmc.api-simplesolution.one/api/v2/order/restore/'+id, {
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
-    })
-        .then(response => {
-            console.log(response.data.data.message);
+async function callApicheck(id, token) {
+    try {
+        axios.get('http://subcmc.api-simplesolution.one/api/v2/order/restore/' + id, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         })
-        .catch(error => {
-            console.error("Loi "+id);
-        });
+            .then(response => {
+
+            })
+            .catch(error => {
+                console.error("Loi " + id);
+            });
+    } catch (e) {
+        console.log(e)
+    }
+}
+
+function formatDate(input) {
+    var datePart = input.match(/\d+/g),
+        year = datePart[0].substring(0), // get only two digits
+        month = datePart[1], day = datePart[2];
+
+    return day + '-' + month + '-' + year;
 }
